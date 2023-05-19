@@ -67,7 +67,6 @@ const COLOR_MAPPING: [Color;16] = [
     }
     ];
 
-const ITERATIONS: i32 = 100000;
 
 const START_IMG: f64 = -1.0;
 const END_IMG: f64 = 5.0;
@@ -75,9 +74,9 @@ const START_REAL: f64 = -3.0;
 const END_REAL: f64 = 3.0;
 
 #[wasm_bindgen]
-pub fn render(width: i32, height: i32, context: &CanvasRenderingContext2d) {
+pub fn render(width: i32, height: i32, max_iterations: i32, context: &CanvasRenderingContext2d) {
 
-    let mut data = get_mandelbrotdata(width, height);
+    let mut data = get_mandelbrotdata(width, height, max_iterations);
 
     let data = ImageData::new_with_u8_clamped_array_and_sh(
         Clamped(&mut data),
@@ -90,7 +89,7 @@ pub fn render(width: i32, height: i32, context: &CanvasRenderingContext2d) {
     .expect("Could put image data");
 }
 
-pub fn get_mandelbrotdata(width: i32, height: i32) -> Vec<u8> {
+pub fn get_mandelbrotdata(width: i32, height: i32, max_iterations: i32) -> Vec<u8> {
 
     let mut data = Vec::new();
 
@@ -100,7 +99,7 @@ pub fn get_mandelbrotdata(width: i32, height: i32) -> Vec<u8> {
                 START_REAL + (y as f64 / height as f64) * (END_REAL - START_REAL),
                 START_IMG + (x as f64 / width as f64) * (END_IMG - START_IMG),                
             );
-            let m = mandelbrot(c);
+            let m = mandelbrot(c, max_iterations);
             let clr = get_colorindex(m);
             data.push(COLOR_MAPPING[clr as usize].red);
             data.push(COLOR_MAPPING[clr as usize].green);
@@ -115,10 +114,10 @@ fn get_colorindex(iterations: i32) -> i32 {
     iterations % COLOR_MAPPING.len() as i32    
 }
 
-fn mandelbrot(c: Complex<f64>) -> i32 {
+fn mandelbrot(c: Complex<f64>, max_iterations: i32) -> i32 {
     let mut z: Complex<f64> = Complex::new(0.0, 0.0);
     let mut n: i32 = 0;
-    while abs(z) <= 2.0 && n < ITERATIONS {
+    while abs(z) <= 2.0 && n < max_iterations {
         z = (z * z) + c;
         n += 1;
     }
