@@ -1,0 +1,26 @@
+[package]
+name = "mandelbrot_wasm"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2.86"
+js-sys = "0.3.63"
+num = "0.4"
+num-complex = "0.4"
+num-traits = "0.2.15"
+num-rational = "0.4"
+
+[profile.release]
+opt-level = "s"
+
+[dependencies.web-sys]
+version = "0.3.63"
+features = [
+  'CanvasRenderingContext2d',
+  'ImageData',
+  'console',
+]
