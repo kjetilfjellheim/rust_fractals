@@ -16,56 +16,10 @@ struct Color {
     blue: u8
 }
 
-const COLOR_MAPPING: [Color;16] = [
-    Color {
-        red: 0, green: 0, blue: 0
-    },
-    Color {
-        red: 0, green: 0, blue: 32
-    },
-    Color {
-        red: 0, green: 0, blue: 64
-    },
-    Color {
-        red: 0, green: 0, blue: 92
-    },
-    Color {
-        red: 0, green: 0, blue: 128
-    },
-    Color {
-        red: 0, green: 0, blue: 160
-    },
-    Color {
-        red: 0, green: 0, blue: 192
-    },
-    Color {
-        red: 0, green: 0, blue: 224
-    },
-    Color {
-        red: 0, green: 0, blue: 255
-    },
-    Color {
-        red: 32, green: 0, blue: 224
-    },
-    Color {
-        red:64, green: 0, blue: 192
-    },
-    Color {
-        red: 128, green: 0, blue: 160
-    },
-    Color {
-        red: 160, green: 0, blue: 128
-    },
-    Color {
-        red: 192, green: 0, blue: 96
-    },
-    Color {
-        red: 224, green: 0, blue: 64
-    },
-    Color {
-        red: 255, green: 0, blue: 0
-    }
-    ];
+struct MandelbrotResponse {
+    z: Complex<f64>,
+    iterations: i32
+}
 
 struct CenterPoint {
     center_x: f64,
@@ -92,11 +46,11 @@ pub fn render(pixel_width: u32, max_iterations: i32, context: &CanvasRenderingCo
 
 pub fn render_with_optional_canvas(pixel_width: u32, max_iterations: i32, context: Option<&CanvasRenderingContext2d>,) {
 
-    let scale: f64 = 0.01;
+    let scale: f64 = 0.0000001;
 
     let centerpoint: CenterPoint = CenterPoint {
-        center_x: -0.5,
-        center_y: -0.5,
+        center_x: -0.55,
+        center_y: -0.55,
     };
 
     let default_viewport: Viewport = Viewport {
@@ -138,11 +92,11 @@ fn get_mandelbrotdata(image: Image, viewport: Viewport, max_iterations: i32) -> 
                 viewport.min_y + (y as f64 / image.height as f64) * (viewport.max_y - viewport.min_y),
                 viewport.min_x + (x as f64 / image.width as f64) * (viewport.max_x - viewport.min_x),                
             );
-            let m = mandelbrot(c, max_iterations);
-            let clr = get_colorindex(m);
-            data.push(COLOR_MAPPING[clr as usize].red);
-            data.push(COLOR_MAPPING[clr as usize].green);
-            data.push(COLOR_MAPPING[clr as usize].blue);
+            let mandelbrot_response = mandelbrot(c, max_iterations);
+            let clr = get_color(mandelbrot_response, max_iterations);
+            data.push(clr.red);
+            data.push(clr.green);
+            data.push(clr.blue);
             data.push(255);
         }
     }
@@ -161,18 +115,27 @@ fn get_viewport(default_viewport: Viewport, centerpoint : CenterPoint, scale: f6
     }
 }
 
-fn get_colorindex(iterations: i32) -> i32 {
-    iterations % COLOR_MAPPING.len() as i32    
+fn get_color(mandelbrot_response: MandelbrotResponse, max_iterations: i32) -> Color {
+    let factor: f64 = (mandelbrot_response.iterations as f64 / max_iterations as f64) * 255 as f64;    
+    let logs = 2.0 + f64::log2(f64::log2(abs(mandelbrot_response.z) + 1.0 ) / f64::log2(2.0));
+    let red = (factor + 5.0 - logs).floor() as u8;
+    let green = red;
+    let blue = (0.0 + (255.0 - 0.0) * (red as f64 / 255.0)) as u8;
+    Color {
+        red: red,
+        green: green,
+        blue: blue
+    }
 }
 
-fn mandelbrot(c: Complex<f64>, max_iterations: i32) -> i32 {
+fn mandelbrot(c: Complex<f64>, max_iterations: i32) -> MandelbrotResponse {
     let mut z: Complex<f64> = Complex::new(0.0, 0.0);
     let mut n: i32 = 0;
     while abs(z) <= 2.0 && n < max_iterations {
         z = (z * z) + c;
         n += 1;
     }
-    n
+    MandelbrotResponse { z: z, iterations: n }
 }
 
 fn abs(c: Complex<f64>) -> f64 {
