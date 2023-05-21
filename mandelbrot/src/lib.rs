@@ -67,37 +67,76 @@ const COLOR_MAPPING: [Color;16] = [
     }
     ];
 
+struct CenterPoint {
+    center_x: f64,
+    center_y: f64,
+}
 
-const START_IMG: f64 = -1.0;
-const END_IMG: f64 = 5.0;
-const START_REAL: f64 = -3.0;
-const END_REAL: f64 = 3.0;
+struct Viewport {
+    min_x: f64,
+    min_y: f64,
+    max_x: f64,
+    max_y: f64,
+}
+
+#[derive(Debug, Copy, Clone)]
+struct Image {
+    width: u32,
+    height: u32,
+}
 
 #[wasm_bindgen]
-pub fn render(width: i32, height: i32, max_iterations: i32, context: &CanvasRenderingContext2d) {
+pub fn render(pixel_width: u32, max_iterations: i32, context: &CanvasRenderingContext2d) {
+    render_with_optional_canvas(pixel_width, max_iterations, Some(context));
+}
 
-    let mut data = get_mandelbrotdata(width, height, max_iterations);
+pub fn render_with_optional_canvas(pixel_width: u32, max_iterations: i32, context: Option<&CanvasRenderingContext2d>,) {
 
-    let data = ImageData::new_with_u8_clamped_array_and_sh(
+    let scale: f64 = 0.01;
+
+    let centerpoint: CenterPoint = CenterPoint {
+        center_x: -0.5,
+        center_y: -0.5,
+    };
+
+    let default_viewport: Viewport = Viewport {
+        min_x: -1.0,
+        min_y: -3.0,
+        max_x: 5.0,
+        max_y: 3.0
+    };
+
+    let image: Image = Image {
+        width: pixel_width,
+        height: pixel_width,
+    };
+
+    let scaled_viewport = get_viewport(default_viewport, centerpoint, scale);
+
+    let mut data = get_mandelbrotdata(image, scaled_viewport, max_iterations);
+
+    let img_data = ImageData::new_with_u8_clamped_array_and_sh(
         Clamped(&mut data),
-        width as u32,
-        height as u32,
+        image.width,
+        image.height
     )
     .expect("Imagedata was not correctly created");
 
-    context.put_image_data(&data, 0.0, 0.0)
-    .expect("Could put image data");
+    if context.is_some() { 
+        context.unwrap().put_image_data(&img_data, 0.0, 0.0)
+        .expect("Could not add image data to context"); 
+    }
 }
 
-pub fn get_mandelbrotdata(width: i32, height: i32, max_iterations: i32) -> Vec<u8> {
+fn get_mandelbrotdata(image: Image, viewport: Viewport, max_iterations: i32) -> Vec<u8> {
 
-    let mut data = Vec::new();
+    let mut data: Vec<u8> = Vec::new();
 
-    for x in 0..width {
-        for y in 0..height {
+    for x in 0..image.width {
+        for y in 0..image.height {
             let c = Complex::<f64>::new(
-                START_REAL + (y as f64 / height as f64) * (END_REAL - START_REAL),
-                START_IMG + (x as f64 / width as f64) * (END_IMG - START_IMG),                
+                viewport.min_y + (y as f64 / image.height as f64) * (viewport.max_y - viewport.min_y),
+                viewport.min_x + (x as f64 / image.width as f64) * (viewport.max_x - viewport.min_x),                
             );
             let m = mandelbrot(c, max_iterations);
             let clr = get_colorindex(m);
@@ -108,6 +147,18 @@ pub fn get_mandelbrotdata(width: i32, height: i32, max_iterations: i32) -> Vec<u
         }
     }
     data
+}
+
+fn get_viewport(default_viewport: Viewport, centerpoint : CenterPoint, scale: f64) -> Viewport {
+    let new_width =  (default_viewport.max_x - default_viewport.min_x) * scale;
+    let new_height =  (default_viewport.max_y - default_viewport.min_y) * scale;
+    Viewport {
+        min_x: centerpoint.center_x - (new_width / 2.0),
+        min_y: centerpoint.center_y - (new_height / 2.0),
+        max_x: centerpoint.center_x + (new_width / 2.0),
+        max_y: centerpoint.center_y + (new_height / 2.0),
+
+    }
 }
 
 fn get_colorindex(iterations: i32) -> i32 {
@@ -126,14 +177,4 @@ fn mandelbrot(c: Complex<f64>, max_iterations: i32) -> i32 {
 
 fn abs(c: Complex<f64>) -> f64 {
     f64::sqrt((c.im as f64 * c.im as f64) + (c.re as f64 * c.re as f64))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn generate_mandelbrot() {
-        let data = get_mandelbrotdata(100, 100);
-        println!("Generated");
-    }
 }

@@ -1,6 +1,5 @@
 mod lib;
 
 fn main() {
-    lib::get_mandelbrotdata(640, 480, 100);
- 
+    lib::render_with_optional_canvas(10, 100, None); 
 }
