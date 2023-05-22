@@ -39,25 +39,23 @@ struct Image {
     height: u32,
 }
 
+const DEFAULT_VIEWPORT: Viewport = Viewport {
+    min_x: -1.0,
+    min_y: -3.0,
+    max_x: 5.0,
+    max_y: 3.0
+};
+
 #[wasm_bindgen]
-pub fn render(pixel_width: u32, max_iterations: i32, context: &CanvasRenderingContext2d) {
-    render_with_optional_canvas(pixel_width, max_iterations, Some(context));
+pub fn render(pixel_width: u32, max_iterations: i32, scale: f64, center_x: f64, center_y: f64, context: &CanvasRenderingContext2d) {
+    render_with_optional_canvas(pixel_width, max_iterations, scale, center_x, center_y, Some(context));
 }
 
-pub fn render_with_optional_canvas(pixel_width: u32, max_iterations: i32, context: Option<&CanvasRenderingContext2d>,) {
-
-    let scale: f64 = 0.0000001;
+pub fn render_with_optional_canvas(pixel_width: u32, max_iterations: i32, scale: f64, center_x: f64, center_y: f64, context: Option<&CanvasRenderingContext2d>,) {
 
     let centerpoint: CenterPoint = CenterPoint {
-        center_x: -0.55,
-        center_y: -0.55,
-    };
-
-    let default_viewport: Viewport = Viewport {
-        min_x: -1.0,
-        min_y: -3.0,
-        max_x: 5.0,
-        max_y: 3.0
+        center_x: center_x,
+        center_y: center_y,
     };
 
     let image: Image = Image {
@@ -65,7 +63,7 @@ pub fn render_with_optional_canvas(pixel_width: u32, max_iterations: i32, contex
         height: pixel_width,
     };
 
-    let scaled_viewport = get_viewport(default_viewport, centerpoint, scale);
+    let scaled_viewport: Viewport = get_viewport(DEFAULT_VIEWPORT, centerpoint, scale);
 
     let mut data = get_mandelbrotdata(image, scaled_viewport, max_iterations);
 
@@ -90,7 +88,7 @@ fn get_mandelbrotdata(image: Image, viewport: Viewport, max_iterations: i32) -> 
         for y in 0..image.height {
             let c = Complex::<f64>::new(
                 viewport.min_y + (y as f64 / image.height as f64) * (viewport.max_y - viewport.min_y),
-                viewport.min_x + (x as f64 / image.width as f64) * (viewport.max_x - viewport.min_x),                
+                viewport.min_x + (x as f64 / image.width as f64) * (viewport.max_x - viewport.min_x),
             );
             let mandelbrot_response = mandelbrot(c, max_iterations);
             let clr = get_color(mandelbrot_response, max_iterations);
@@ -120,11 +118,19 @@ fn get_color(mandelbrot_response: MandelbrotResponse, max_iterations: i32) -> Co
     let logs = 2.0 + f64::log2(f64::log2(abs(mandelbrot_response.z) + 1.0 ) / f64::log2(2.0));
     let red = (factor + 5.0 - logs).floor() as u8;
     let green = red;
-    let blue = (0.0 + (255.0 - 0.0) * (red as f64 / 255.0)) as u8;
-    Color {
-        red: red,
-        green: green,
-        blue: blue
+    let blue = (100.0 + (255.0 - 100.0) * (red as f64 / 255.0)) as u8;
+    if mandelbrot_response.iterations < max_iterations {
+        Color {
+            red: red,
+            green: green,
+            blue: blue
+        }
+    } else {
+        Color {
+            red: 0,
+            green: 0,
+            blue: 0
+        }        
     }
 }
 

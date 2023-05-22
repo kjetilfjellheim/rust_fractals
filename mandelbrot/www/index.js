@@ -5,8 +5,9 @@ function render() {
     const canvas = document.getElementById("mandelbrotCanvas");
 
     const ctx = canvas.getContext("2d");    
-  
-    wasm.render($("#iwidth").val(), $("#iiter").val(), ctx, true);
+    canvas.width = $("#iwidth").val();
+    canvas.height = $("#iwidth").val();
+    wasm.render($("#iwidth").val(), $("#iiter").val(), $("#iscale").val(), $("#icenterx").val(), $("#icentery").val(), ctx);
 
   }
   
