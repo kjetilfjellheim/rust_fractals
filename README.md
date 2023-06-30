@@ -1,7 +1,7 @@
 # rust_fractals<br>
 This is a set of implemented fractals implemented in Rust using web assembly.<br>
 <br>
-**Building**
+**Building**<br>
 cargo build<br>
 wasm-pack build<br>
 cd www<br>
