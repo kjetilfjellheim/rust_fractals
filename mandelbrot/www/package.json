@@ -4,12 +4,12 @@
   "description": "''mandelbrot wasm application",
   "main": "index.js",
   "scripts": {
-    "build": "webpack --config webpack.config.js",
-    "start": "webpack-dev-server"
+    "build": "webpack --config webpack.config.js ",
+    "start": "webpack serve "
   },
   "dependencies": {
-    "bootstrap": "^5.2.3",
-    "jquery": "^3.7.0",
+    "bootstrap": "5.2.3",
+    "jquery": "3.7.0",
     "mandelbrot_wasm": "file:../pkg"
   },
   "keywords": [
@@ -20,9 +20,9 @@
   ],
   "author": "Kjetil Fjellheim",
   "devDependencies": {
-    "copy-webpack-plugin": "^5.0.0",
-    "webpack": "^4.29.3",
-    "webpack-cli": "^3.1.0",
-    "webpack-dev-server": "^3.1.5"
+    "copy-webpack-plugin": "^5.1.2",
+    "webpack": "5.88.1",
+    "webpack-cli": "5.1.4",
+    "webpack-dev-server": "^4.15.1"
   }
 }
