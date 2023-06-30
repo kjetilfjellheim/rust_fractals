@@ -1,4 +1,4 @@
-# rust_fractals<br>
+# Rust fractals<br>
 This is a set of implemented fractals implemented in Rust using web assembly.<br>
 <br>
 **Building**<br>
