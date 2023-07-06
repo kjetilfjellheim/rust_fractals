@@ -45,9 +45,9 @@ impl Triangle {
         log!("{}", current_depth);
         let mut elements: Vec<Triangle> = Vec::new();
         if current_depth < max_depth {
-            elements.push(Triangle::new(self.a, self.b, self.c).generate(current_depth + 1, max_depth));
-            elements.push(Triangle::new(self.a, self.b, self.c).generate(current_depth + 1, max_depth));
-            elements.push(Triangle::new(self.a, self.b, self.c).generate(current_depth + 1, max_depth));
+            elements.push(Triangle::get_sub_point(self.a, self.b, self.c).generate(current_depth + 1, max_depth));
+            elements.push(Triangle::get_sub_point(self.b, self.c, self.a).generate(current_depth + 1, max_depth));
+            elements.push(Triangle::get_sub_point(self.c, self.a, self.b).generate(current_depth + 1, max_depth));
         }
         Triangle {
             a: self.a,
@@ -57,6 +57,16 @@ impl Triangle {
 
         }
     }
+
+    fn get_sub_point(a: Point, b: Point, c: Point) -> Triangle {
+        Triangle {
+            a: a,
+            b: Point::new((a.x + b.x) / 2, (a.y + b.y) / 2),
+            c: Point::new((a.x + c.x) / 2, (a.y + c.y) / 2),
+            elements: Vec::new()
+        }
+    }
+
 
     fn draw(self, canvas: &CanvasRenderingContext2d) {
         canvas.set_fill_style(&JsValue::from_str("black"));
